@@ -26,7 +26,7 @@ export const postSignup = async (req, res) => {
     const newUser = new User({
       email: body.email,
       password: hashedPass,
-      fullName: body.fullName,
+      displayName: body.displayName,
     });
     const savedUser = await newUser.save();
     console.log('New user saved: ', savedUser);
@@ -55,4 +55,8 @@ export const postLogout = (req, res) => {
     console.log('Removed session: ', err);
     res.status(200).send({ message: 'Logged out successfully!' });
   });
+};
+
+export const getGoogleCallbackHandler = (req, res) => {
+  res.sendStatus(200);
 };

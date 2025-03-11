@@ -19,7 +19,7 @@ export const userValidationSchema = {
     },
   },
 
-  fullName: {
+  displayName: {
     notEmpty: true,
     isString: true,
     errorMessage: 'Please enter a valid full name.',
