@@ -1,28 +1,58 @@
-import { mockUsers } from '../utils/constants.mjs';
+import User from '../models/User.mjs';
+import { matchedData, validationResult } from 'express-validator';
+import { hashPassword } from '../utils/authUtil.mjs';
 
-export const postLogin = (req, res) => {
-  const {
-    body: { email, password },
-  } = req;
-
-  const user = mockUsers.find(user => user.email === email);
-  if (!user || user.password !== password) {
-    return res.status(401).send({ message: 'BAD CREDENTIALS' });
+export const postSignup = async (req, res) => {
+  // Validate inputs
+  const result = validationResult(req);
+  if (!result.isEmpty()) {
+    const errorMessages = result.errors.map(err => err.msg);
+    return res.status(422).send({ message: errorMessages });
   }
 
-  req.session.user = user; // attach user to the session
-  res.status(201).send(user);
+  // Check if email already exists
+  const { body } = req;
+  try {
+    const currentUser = await User.findOne({ email: body.email });
+    if (currentUser)
+      return res.status(400).send({ message: 'Email already exists' });
+  } catch (error) {
+    return res.sendStatus(500);
+  }
+
+  // Save user
+  try {
+    const hashedPass = await hashPassword(body.password);
+    const newUser = new User({
+      email: body.email,
+      password: hashedPass,
+      fullName: body.fullName,
+    });
+    const savedUser = await newUser.save();
+    console.log('New user saved: ', savedUser);
+    res.status(201).send(savedUser);
+  } catch (err) {
+    return response.sendStatus(400);
+  }
+};
+
+export const postLogin = async (req, res) => {
+  res.status(200).send({ message: 'Login success!' });
 };
 
 export const getStatus = (req, res) => {
-  return req.session.user
-    ? res.status(200).send(req.session)
-    : res.status(401).send({ message: 'NOT AUTHENTICATED' });
+  console.log('In /pass/status endpoint');
+  console.log('Request user: ', req.user);
+  console.log('Request session: ', req.session);
+  return req.user ? res.send(req.user) : res.sendStatus(401);
 };
 
 export const postLogout = (req, res) => {
+  console.log('SESSION: ', req.session.passport);
+  if (!req.session.passport) return res.sendStatus(401);
+
   req.session.destroy(err => {
-    console.log('Session destroyed: ', err);
+    console.log('Removed session: ', err);
+    res.status(200).send({ message: 'Logged out successfully!' });
   });
-  res.status(200).send({ message: 'User logged out' });
 };
