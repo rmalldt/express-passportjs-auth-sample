@@ -37,7 +37,10 @@ router.post('/logout', postLogout);
  *      - In the verify function, we access the google profile, accessToken and
  *        refreshToken via query param 'code'
  */
-router.get('/google', passport.authenticate('google', { scope: ['profile'] }));
+router.get(
+  '/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
 router.get(
   '/google/callback',
   passport.authenticate('google'),

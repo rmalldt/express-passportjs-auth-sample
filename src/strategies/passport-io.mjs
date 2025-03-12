@@ -28,15 +28,17 @@ export const passportDeserialize = passport.deserializeUser(
   async (id, done) => {
     console.log('Deserialize user, id: ', id);
     let currentUser;
+    // Check local user
     try {
-      currentUser = await User.findById(id); // check local user
+      currentUser = await User.findById(id);
     } catch (err) {
       done(err, null);
     }
 
+    // Check Google user
     try {
       if (!currentUser) {
-        currentUser = await GoogleUser.findById(id); // check google user
+        currentUser = await GoogleUser.findById(id);
         if (!currentUser) throw new Error('User Not Found');
         return done(null, currentUser);
       }

@@ -24,6 +24,7 @@ const googleStrategy = passport.use(
         if (!currentUser) {
           const newUser = new GoogleUser({
             googleId: profile.id,
+            email: profile.emails[0].value,
             displayName: profile.displayName,
           });
           const newSavedUser = await newUser.save();

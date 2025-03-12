@@ -15,7 +15,7 @@ import googleStrategy from './strategies/google-strategy.mjs';
 import {
   passportSerialize,
   passportDeserialize,
-} from './strategies/serialization.mjs';
+} from './strategies/passport-io.mjs';
 
 const PORT = process.env.PORT || 3000;
 
