@@ -41,7 +41,7 @@ export const postLogin = async (req, res) => {
 };
 
 export const getStatus = (req, res) => {
-  console.log('In /pass/status endpoint');
+  console.log('In /auth/status endpoint');
   console.log('Request user: ', req.user);
   console.log('Request session: ', req.session);
   return req.user ? res.send(req.user) : res.sendStatus(401);
@@ -58,5 +58,8 @@ export const postLogout = (req, res) => {
 };
 
 export const getGoogleCallbackHandler = (req, res) => {
+  console.log('In /auth/google/callback endpoint');
+  console.log('Request user: ', req.user);
+  console.log('Request session: ', req.session);
   res.sendStatus(200);
 };

@@ -12,6 +12,10 @@ import mockRoutes from './routes/mock.mjs';
 import authRoutes from './routes/auth.mjs';
 import localStrategy from './strategies/local-strategy.mjs';
 import googleStrategy from './strategies/google-strategy.mjs';
+import {
+  passportSerialize,
+  passportDeserialize,
+} from './strategies/serialization.mjs';
 
 const PORT = process.env.PORT || 3000;
 
@@ -23,9 +27,6 @@ mongoose
   .then(() => console.log('Connected to Database'))
   .catch(err => console.log('DB connection failed: ', err));
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-
 // CORS
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -36,6 +37,9 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   next();
 });
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 
 // Session
 app.use(
@@ -61,8 +65,6 @@ app.use(
 // Passport authentication
 app.use(passport.initialize()); // initializes passport for incoming requests
 app.use(passport.session()); // attach session.user to request
-localStrategy;
-googleStrategy;
 
 // Routes
 app.use(homeRoutes);

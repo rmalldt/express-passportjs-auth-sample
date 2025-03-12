@@ -6,13 +6,9 @@ const googleUserSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  email: {
-    type: mongoose.Schema.Types.String,
-    required: true,
-    unique: true,
-  },
   displayName: {
     type: mongoose.Schema.Types.String,
+    required: true,
   },
 });
 

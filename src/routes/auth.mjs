@@ -21,7 +21,7 @@ router.post('/signup', checkSchema(userValidationSchema), postSignup);
  *  - The passport.authenticate('local') will call the local-strategy.mjs verify function
  *    which is imported in index.mjs.
  */
-router.post('/login', passport.authenticate('local'), postLogin);
+router.post('/login', passport.authenticate(['local']), postLogin);
 router.get('/status', getStatus);
 router.post('/logout', postLogout);
 
