@@ -10,6 +10,7 @@ import {
   postLogout,
   getGoogleCallbackHandler,
 } from '../controllers/authController.mjs';
+import { isAuth } from '../middleware/isAuth.mjs';
 
 const router = express.Router();
 
@@ -22,8 +23,8 @@ router.post('/signup', checkSchema(userValidationSchema), postSignup);
  *    which is imported in index.mjs.
  */
 router.post('/login', passport.authenticate(['local']), postLogin);
-router.get('/status', getStatus);
-router.post('/logout', postLogout);
+router.get('/status', isAuth, getStatus);
+router.post('/logout', isAuth, postLogout);
 
 /**
  * Google strategy:

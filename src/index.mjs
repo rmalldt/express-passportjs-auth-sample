@@ -48,6 +48,8 @@ app.use(
     saveUninitialized: false,
     resave: false,
     cookie: {
+      httpOnly: true,
+      sameSite: 'Strict',
       maxAge: 1000 * 60 * 60,
     },
     /**
@@ -75,6 +77,16 @@ app.use('/cart', cartRoutes);
 // Catch all
 app.use((req, res) => {
   res.status(404).send({ message: 'Page not found' });
+});
+
+// Error handling middleware
+app.use((error, req, res, next) => {
+  console.log('ERROR MIDDLEWARE');
+  const status = error.statusCode || 500;
+  const message = error.message;
+  const errorData = error.data;
+  console.log('ERROR MIDDLEWARE: ', status, message, errorData);
+  res.status(status).json({ message: message, data: errorData });
 });
 
 app.listen(PORT, () => {
