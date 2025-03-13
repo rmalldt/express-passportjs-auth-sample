@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { getHome } from '../controllers/homeController.mjs';
+import { getHome } from '../controllers/home-controller.mjs';
 
 const router = express.Router();
 

@@ -1,6 +1,6 @@
 import passport from 'passport';
-import User from '../models/User.mjs';
-import GoogleUser from '../models/GoogleUser.mjs';
+import User from '../models/user.mjs';
+import GoogleUser from '../models/google-user.mjs';
 
 /**
  * Serialize verified user object to store into the session.

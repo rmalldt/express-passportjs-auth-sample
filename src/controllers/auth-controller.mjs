@@ -1,7 +1,7 @@
-import User from '../models/User.mjs';
+import User from '../models/user.mjs';
 import { matchedData, validationResult } from 'express-validator';
-import { hashPassword } from '../utils/authUtil.mjs';
-import { newError } from '../utils/errorUtil.mjs';
+import { hashPassword } from '../utils/auth-util.mjs';
+import { newError } from '../utils/error-util.mjs';
 
 export const postSignup = async (req, res) => {
   // Validate inputs

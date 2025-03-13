@@ -1,12 +1,7 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 /**
  * Generate an object where the keys are stored in properties 'privateKey' and 'publicKey'.

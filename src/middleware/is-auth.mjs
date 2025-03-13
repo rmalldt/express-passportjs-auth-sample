@@ -1,4 +1,4 @@
-import { newError } from '../utils/errorUtil.mjs';
+import { newError } from '../utils/error-util.mjs';
 
 export const isAuth = (req, res, next) => {
   if (!req.user || !req.session.passport) {

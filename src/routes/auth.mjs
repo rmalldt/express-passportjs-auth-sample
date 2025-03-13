@@ -2,15 +2,15 @@ import express from 'express';
 import passport from 'passport';
 import { checkSchema } from 'express-validator';
 
-import { userValidationSchema } from '../utils/validationSchemas.mjs';
+import { userValidationSchema } from '../utils/validation-schemas.mjs';
 import {
   postSignup,
   postLogin,
   getStatus,
   postLogout,
   getGoogleCallbackHandler,
-} from '../controllers/authController.mjs';
-import { isAuth } from '../middleware/isAuth.mjs';
+} from '../controllers/auth-controller.mjs';
+import { isAuth } from '../middleware/is-auth.mjs';
 
 const router = express.Router();
 

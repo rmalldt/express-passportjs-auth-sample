@@ -1,8 +1,8 @@
 import passport from 'passport';
 import { Strategy } from 'passport-local';
 
-import User from '../models/User.mjs';
-import { comparePassword } from '../utils/authUtil.mjs';
+import User from '../models/user.mjs';
+import { comparePassword } from '../utils/auth-util.mjs';
 
 // Verify function
 const localStrategy = passport.use(

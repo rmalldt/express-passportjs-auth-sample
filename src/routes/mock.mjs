@@ -3,7 +3,7 @@ import {
   postLogin,
   getStatus,
   postLogout,
-} from '../controllers/mockController.mjs';
+} from '../controllers/mock-controller.mjs';
 
 const router = express.Router();
 
