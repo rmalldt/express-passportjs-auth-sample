@@ -1,20 +1,23 @@
 import User from '../models/user.mjs';
 import { matchedData, validationResult } from 'express-validator';
-import { hashPassword } from '../utils/auth-util.mjs';
+import {
+  comparePassword,
+  hashPassword,
+  issueJwt,
+} from '../utils/auth-util.mjs';
 import { newError } from '../utils/error-util.mjs';
 
-export const postSignup = async (req, res) => {
+export const postSignup = async (req, res, next) => {
   // Validate inputs
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    const errorMessages = result.errors.map(err => err.msg);
-    return res.status(422).send({ message: errorMessages });
+    return next(newError('Invalid Input', 422, result.errors));
   }
 
   // Check if email already exists
-  const { body } = req;
+  const { email, password, displayName } = req.body;
   try {
-    const currentUser = await User.findOne({ email: body.email });
+    const currentUser = await User.findOne({ email: email });
     if (currentUser)
       return res.status(400).send({ message: 'Email already exists' });
   } catch (error) {
@@ -23,28 +26,44 @@ export const postSignup = async (req, res) => {
 
   // Save user
   try {
-    const hashedPass = await hashPassword(body.password);
+    const hashedPass = await hashPassword(password);
     const newUser = new User({
-      email: body.email,
+      email: email,
       password: hashedPass,
-      displayName: body.displayName,
+      displayName: displayName,
     });
     const savedUser = await newUser.save();
-    console.log('New user saved: ', savedUser);
-    res.status(201).send(savedUser);
+    res.status(201).send({ message: 'Signup Success!', user: savedUser });
   } catch (err) {
-    return response.sendStatus(400);
+    return response.sendStatus(500);
   }
 };
 
-export const postLogin = async (req, res) => {
-  res.status(200).send({ message: 'Login success!' });
+export const postLogin = async (req, res, next) => {
+  const { email, password } = req.body;
+  try {
+    // Check email
+    const user = await User.findOne({ email });
+    if (!user) throw newError(`No user found associated with ${email}`, 400);
+
+    // Check password
+    const doMatch = await comparePassword(password, user.password);
+    if (!doMatch) throw newError('Wrong password', 401);
+
+    const jwt = issueJwt(user);
+    res
+      .status(200)
+      .json({ user: user, token: jwt.token, expiresIn: jwt.expiresIn });
+  } catch (err) {
+    if (!err.statusCode) err.statusCode = 500;
+    next(err);
+  }
 };
 
 export const getStatus = (req, res) => {
   console.log('In /auth/status endpoint');
   console.log('Request user: ', req.user);
-  console.log('Request session: ', req.session);
+  // console.log('Request session: ', req.session);
   return req.user ? res.send(req.user) : res.sendStatus(401);
 };
 

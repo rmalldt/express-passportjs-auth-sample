@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import bodyParser from 'body-parser';
-import session from 'express-session';
+// import session from 'express-session';
 import passport from 'passport';
 import mongoose from 'mongoose';
 import MongoStore from 'connect-mongo';
@@ -10,12 +10,14 @@ import homeRoutes from './routes/home.mjs';
 import cartRoutes from './routes/cart.mjs';
 import mockRoutes from './routes/mock.mjs';
 import authRoutes from './routes/auth.mjs';
-import localStrategy from './strategies/local-strategy.mjs';
-import googleStrategy from './strategies/google-strategy.mjs';
-import {
-  passportSerialize,
-  passportDeserialize,
-} from './strategies/passport-io.mjs';
+import jwtStrategy from './strategies/jwt-strategy.mjs';
+
+// import localStrategy from './strategies/local-strategy.mjs';
+// import googleStrategy from './strategies/google-strategy.mjs';
+// import {
+//   passportSerialize,
+//   passportDeserialize,
+// } from './strategies/passport-io.mjs';
 
 const PORT = process.env.PORT || 3000;
 
@@ -41,32 +43,32 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-// Session
-app.use(
-  session({
-    secret: process.env.SESSION_KEY,
-    saveUninitialized: false,
-    resave: false,
-    cookie: {
-      httpOnly: true,
-      sameSite: 'Strict',
-      maxAge: 1000 * 60 * 60,
-    },
-    /**
-     * - Creates 'session' collection in DB.
-     * - Stores session of loggedin user in session collection referencing session id.
-     * - Retrieves the session from DB via session id and attaches to the incoming request
-     *   providing 'request.session'.
-     */
-    store: MongoStore.create({
-      client: mongoose.connection.getClient(),
-    }),
-  })
-);
+// // Session
+// app.use(
+//   session({
+//     secret: process.env.SESSION_KEY,
+//     saveUninitialized: false,
+//     resave: false,
+//     cookie: {
+//       httpOnly: true,
+//       sameSite: 'Strict',
+//       maxAge: 1000 * 60 * 60,
+//     },
+//     /**
+//      * - Creates 'session' collection in DB.
+//      * - Stores session of loggedin user in session collection referencing session id.
+//      * - Retrieves the session from DB via session id and attaches to the incoming request
+//      *   providing 'request.session'.
+//      */
+//     store: MongoStore.create({
+//       client: mongoose.connection.getClient(),
+//     }),
+//   })
+// );
 
 // Passport authentication
 app.use(passport.initialize()); // initializes passport for incoming requests
-app.use(passport.session()); // attach session.user to request
+// app.use(passport.session()); // attach session.user to request
 
 // Routes
 app.use(homeRoutes);
@@ -81,7 +83,6 @@ app.use((req, res) => {
 
 // Error handling middleware
 app.use((error, req, res, next) => {
-  console.log('ERROR MIDDLEWARE');
   const status = error.statusCode || 500;
   const message = error.message;
   const errorData = error.data;

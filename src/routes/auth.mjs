@@ -16,15 +16,13 @@ const router = express.Router();
 
 router.post('/signup', checkSchema(userValidationSchema), postSignup);
 
-/**
- * Local strategy:
- *  - local => email, password
- *  - The passport.authenticate('local') will call the local-strategy.mjs verify function
- *    which is imported in index.mjs.
- */
-router.post('/login', passport.authenticate(['local']), postLogin);
-router.get('/status', isAuth, getStatus);
-router.post('/logout', isAuth, postLogout);
+router.post('/login', postLogin);
+router.get(
+  '/status',
+  passport.authenticate('jwt', { session: false }),
+  getStatus
+);
+router.post('/logout', postLogout);
 
 /**
  * Google strategy:
