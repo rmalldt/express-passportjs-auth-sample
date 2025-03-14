@@ -1,5 +1,5 @@
 import User from '../models/user.mjs';
-import { matchedData, validationResult } from 'express-validator';
+import { validationResult } from 'express-validator';
 import {
   comparePassword,
   hashPassword,
@@ -11,21 +11,19 @@ export const postSignup = async (req, res, next) => {
   // Validate inputs
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    return next(newError('Invalid Input', 422, result.errors));
+    const errors = result.errors.map(error => error.msg);
+    return next(newError(422, 'Invalid Input', errors));
   }
 
-  // Check if email already exists
   const { email, password, displayName } = req.body;
   try {
+    // Check if email already exists
     const currentUser = await User.findOne({ email: email });
-    if (currentUser)
-      return res.status(400).send({ message: 'Email already exists' });
-  } catch (error) {
-    return res.sendStatus(500);
-  }
+    if (currentUser) {
+      return next(newError(400, 'Email already exists'));
+    }
 
-  // Save user
-  try {
+    // Save user
     const hashedPass = await hashPassword(password);
     const newUser = new User({
       email: email,
@@ -33,9 +31,17 @@ export const postSignup = async (req, res, next) => {
       displayName: displayName,
     });
     const savedUser = await newUser.save();
-    res.status(201).send({ message: 'Signup Success!', user: savedUser });
+
+    res.status(201).send({
+      message: 'Signup Success',
+      user: {
+        id: savedUser._id,
+        email: savedUser.email,
+        displayName: savedUser.displayName,
+      },
+    });
   } catch (err) {
-    return response.sendStatus(500);
+    next(newError(500, 'internal', err));
   }
 };
 
@@ -44,42 +50,78 @@ export const postLogin = async (req, res, next) => {
   try {
     // Check email
     const user = await User.findOne({ email });
-    if (!user) throw newError(`No user found associated with ${email}`, 400);
+    if (!user) {
+      return next(newError(400, 'User Not Found.'));
+    }
 
     // Check password
     const doMatch = await comparePassword(password, user.password);
-    if (!doMatch) throw newError('Wrong password', 401);
+    if (!doMatch) {
+      return next(newError(400, 'Bad Request'));
+    }
 
+    // Issue token
     const jwt = issueJwt(user);
-    res
-      .status(200)
-      .json({ user: user, token: jwt.token, expiresIn: jwt.expiresIn });
+    req.session.visited = true; // attach session and store in DB
+    res.status(200).json({
+      message: 'Login Success',
+      user: {
+        id: user._id,
+        email: user.email,
+        displayName: user.displayName,
+      },
+      token: jwt.token,
+      expiresIn: jwt.expiresIn,
+    });
   } catch (err) {
-    if (!err.statusCode) err.statusCode = 500;
-    next(err);
+    next(newError(500, 'internal', err));
   }
 };
 
 export const getStatus = (req, res) => {
   console.log('In /auth/status endpoint');
   console.log('Request user: ', req.user);
-  // console.log('Request session: ', req.session);
-  return req.user ? res.send(req.user) : res.sendStatus(401);
-};
-
-export const postLogout = (req, res) => {
-  console.log('SESSION: ', req.session.passport);
-  if (!req.session.passport) return res.sendStatus(401);
-
-  req.session.destroy(err => {
-    console.log('Removed session: ', err);
-    res.status(200).send({ message: 'Logged out successfully!' });
+  console.log('Request session: ', req.session);
+  res.status(200).json({
+    message: 'Access granted!',
+    user: {
+      id: req.user._id,
+      email: req.user.email,
+      displayName: req.user.displayName,
+    },
+    session: req.session,
   });
 };
 
+export const postLogout = (req, res) => {
+  console.log('In /auth/logout: ');
+  if (!req.user) return res.sendStatus(401);
+
+  req.session.destroy(err => {
+    console.log('Removed session');
+  });
+  delete req.user;
+
+  res
+    .status(200)
+    .send({ message: 'Logout Success, remove token from frontend.' });
+};
+
 export const getGoogleCallbackHandler = (req, res) => {
-  console.log('In /auth/google/callback endpoint');
-  console.log('Request user: ', req.user);
-  console.log('Request session: ', req.session);
-  res.sendStatus(200);
+  console.log('In /auth/google/callback');
+
+  // Issue jwt token for google user
+  // NOTE: Passport Google strategy attaches user to incoming request.
+  const jwt = issueJwt(req.user);
+  req.session.visited = true; // attach session and store in DB
+  res.status(200).json({
+    message: 'Login Success',
+    user: {
+      id: req.user._id,
+      email: req.user.email,
+      displayName: req.user.displayName,
+    },
+    token: jwt.token,
+    expiresIn: jwt.expiresIn,
+  });
 };

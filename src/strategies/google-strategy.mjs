@@ -6,38 +6,45 @@ import GoogleUser from '../models/google-user.mjs';
 const googleOptions = {
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: process.env.GOOGLE_CALLBACK_URL, // URL is called upon successful user auth by Google
+  callbackURL: process.env.GOOGLE_CALLBACK_URL,
 };
 
-const googleStrategy = passport.use(
+export default passport.use(
   new Strategy(
     googleOptions,
     async (accessToken, refreshToken, profile, done) => {
       console.log('Verifying google profile: ', profile);
-
-      let currentUser;
       try {
-        currentUser = await GoogleUser.findOne({ googleId: profile.id });
-      } catch (err) {
-        return done(err, null);
-      }
+        let user = await GoogleUser.findOne({ googleId: profile.id });
 
-      try {
-        if (!currentUser) {
-          const newUser = new GoogleUser({
+        if (!user) {
+          user = new GoogleUser({
             googleId: profile.id,
             email: profile.emails[0].value,
             displayName: profile.displayName,
           });
-          const newSavedUser = await newUser.save();
-          return done(null, newSavedUser);
         }
-        done(null, currentUser);
+
+        const newUser = await user.save();
+        done(null, newUser);
       } catch (err) {
-        done(err, null);
+        return done(err, false);
       }
     }
   )
 );
 
-export default googleStrategy;
+// export const serialize = passport.serializeUser((user, done) => {
+//   console.log('Serialize user: ', user);
+//   done(null, user.id);
+// });
+
+// export const deserialize = passport.deserializeUser(async (id, done) => {
+//   console.log('Deserialize user: ', id);
+//   try {
+//     const user = await GoogleUser.findById(id);
+//     done(null, user);
+//   } catch (err) {
+//     done(err, false);
+//   }
+// });

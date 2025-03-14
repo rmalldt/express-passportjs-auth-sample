@@ -15,14 +15,9 @@ import { isAuth } from '../middleware/is-auth.mjs';
 const router = express.Router();
 
 router.post('/signup', checkSchema(userValidationSchema), postSignup);
-
 router.post('/login', postLogin);
-router.get(
-  '/status',
-  passport.authenticate('jwt', { session: false }),
-  getStatus
-);
-router.post('/logout', postLogout);
+router.get('/status', isAuth, getStatus);
+router.post('/logout', isAuth, postLogout);
 
 /**
  * Google strategy:
@@ -38,11 +33,15 @@ router.post('/logout', postLogout);
  */
 router.get(
   '/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    session: false,
+    failureRedirect: '/',
+  })
 );
 router.get(
   '/google/callback',
-  passport.authenticate('google'),
+  passport.authenticate('google', { session: false, failureRedirect: '/' }),
   getGoogleCallbackHandler
 );
 

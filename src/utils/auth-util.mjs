@@ -18,9 +18,19 @@ const PRIV_KEY = fs.readFileSync(
   'utf-8'
 );
 
+const PUB_KEY = fs.readFileSync(
+  path.join(
+    fileURLToPath(import.meta.url),
+    '..',
+    '..',
+    'cryptography',
+    'id_rsa_pub.pem'
+  ),
+  'utf-8'
+);
+
 export const hashPassword = async pass => {
   const salt = await bcrypt.genSalt(SALT_ROUNDS);
-  console.log('GenSalt: ', salt);
   return await bcrypt.hash(pass, salt);
 };
 
@@ -45,4 +55,10 @@ export const issueJwt = user => {
     token: signedToken,
     expiresIn: expiresIn,
   };
+};
+
+export const verifyJwt = token => {
+  const decoded = jwt.verify(token, PUB_KEY, { algorithms: ['RS256'] });
+  console.log('Decoded: ', decoded);
+  return decoded;
 };

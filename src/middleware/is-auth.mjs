@@ -1,15 +1,31 @@
+import GoogleUser from '../models/google-user.mjs';
+import User from '../models/user.mjs';
+import { verifyJwt } from '../utils/auth-util.mjs';
 import { newError } from '../utils/error-util.mjs';
 
-export const isAuth = (req, res, next) => {
-  if (!req.user || !req.session.passport) {
-    throw newError('Not authenticated', 401);
+export const isAuth = async (req, res, next) => {
+  const token = req.get('Authorization')?.split(' ')[1];
+  if (!token) {
+    return next(newError(400, 'Bad Request'));
   }
 
-  const userId = req.user._id.toString();
-  const sessionUserId = req.session.passport.user;
+  try {
+    const decoded = verifyJwt(token);
+    if (!decoded) {
+      return next(newError(401, 'Not Authorized'));
+    }
 
-  if (userId !== sessionUserId) {
-    throw newError('Not authenticated', 401);
+    // Get user from DB and attach user to incoming request
+    let user = await User.findById(decoded.sub);
+    if (!user) {
+      user = await GoogleUser.findById(decoded.sub);
+      if (!user) {
+        return next(newError(401, 'No user found'));
+      }
+    }
+    req.user = user;
+    next();
+  } catch (err) {
+    next(newError(500, 'internal', err));
   }
-  next();
 };
