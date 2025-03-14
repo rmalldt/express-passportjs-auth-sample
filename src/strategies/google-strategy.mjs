@@ -12,8 +12,9 @@ const googleOptions = {
 export default passport.use(
   new Strategy(
     googleOptions,
-    async (accessToken, refreshToken, profile, done) => {
+    async (req, accessToken, refreshToken, profile, done) => {
       console.log('Verifying google profile: ', profile);
+      console.log('USER: ', req.user);
       try {
         let user = await GoogleUser.findOne({ googleId: profile.id });
 
@@ -33,18 +34,3 @@ export default passport.use(
     }
   )
 );
-
-// export const serialize = passport.serializeUser((user, done) => {
-//   console.log('Serialize user: ', user);
-//   done(null, user.id);
-// });
-
-// export const deserialize = passport.deserializeUser(async (id, done) => {
-//   console.log('Deserialize user: ', id);
-//   try {
-//     const user = await GoogleUser.findById(id);
-//     done(null, user);
-//   } catch (err) {
-//     done(err, false);
-//   }
-// });

@@ -4,6 +4,16 @@ import path from 'path';
 import base64url from 'base64url';
 import { fileURLToPath } from 'url';
 
+const privateKey = fs.readFileSync(
+  path.join(fileURLToPath(import.meta.url), '..', '..', 'id_rsa.pem'),
+  'utf-8'
+);
+
+const publicKey = fs.readFileSync(
+  path.join(fileURLToPath(import.meta.url), '..', '..', 'id_rsa_pub.pem'),
+  'utf-8'
+);
+
 const headerObj = { alg: 'HS256', typ: 'JWT' };
 
 const payloadObj = {
@@ -27,11 +37,6 @@ signatureFn.write(base64UrlHeader + '.' + base64UrlPayload);
 signatureFn.end();
 
 // Sign the jwt
-const privateKey = fs.readFileSync(
-  path.join(fileURLToPath(import.meta.url), '..', '..', 'id_rsa.pem'),
-  'utf-8'
-);
-
 // NOTE: Node uses base64 encoding, therefore, the signed output is in base64 format
 // Sign the data using PrivateKey
 const signedBase64 = signatureFn.sign(privateKey, 'base64');
@@ -61,13 +66,8 @@ const signatureBase64Url = jwtParts[2];
 verifyFn.write(headerBase64Url + '.' + payloadBase64Url);
 verifyFn.end();
 
-// NOTE: Node uses base64 encoding, therefore, ALWAYS convert base64Url to base64 before decryption.
+// NOTE: Node uses base64 encoding, therefore, convert base64Url to base64 before decryption.
 const jwtSignatureBase64 = base64url.toBase64(signatureBase64Url);
-
-const publicKey = fs.readFileSync(
-  path.join(fileURLToPath(import.meta.url), '..', '..', 'id_rsa_pub.pem'),
-  'utf-8'
-);
 
 // Verify the data using PublicKey
 const signatureIsValid = verifyFn.verify(

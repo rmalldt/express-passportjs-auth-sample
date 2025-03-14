@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import helmet from 'helmet';
 import bodyParser from 'body-parser';
 import session from 'express-session';
 import passport from 'passport';
@@ -9,17 +10,24 @@ import MongoStore from 'connect-mongo';
 import homeRoutes from './routes/home.mjs';
 import cartRoutes from './routes/cart.mjs';
 import authRoutes from './routes/auth.mjs';
-import googleStrategy from './strategies/google-strategy.mjs';
+import './strategies/google-strategy.mjs';
+import { newError } from './utils/error-util.mjs';
 
 const PORT = process.env.PORT || 3000;
 
 const app = express();
+app.use(helmet());
 
 // Connect DB
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => console.log('Connected to Database'))
   .catch(err => console.log('DB connection failed: ', err));
+
+// Store
+const store = MongoStore.create({
+  client: mongoose.connection.getClient(),
+});
 
 // CORS
 app.use((req, res, next) => {
@@ -41,45 +49,36 @@ app.use(
     secret: process.env.SESSION_KEY,
     saveUninitialized: false,
     resave: false,
+    store: store,
     cookie: {
       httpOnly: true,
       sameSite: 'Strict',
       maxAge: 1000 * 60 * 60,
     },
-    /**
-     * - Creates 'session' collection in DB.
-     * - Stores session of loggedin user in session collection referencing session id.
-     * - Retrieves the session from DB via session id and attaches to the incoming request
-     *   providing 'request.session'.
-     */
-    store: MongoStore.create({
-      client: mongoose.connection.getClient(),
-    }),
   })
 );
 
 // Passport authentication
 app.use(passport.initialize()); // initializes passport for incoming requests
-// app.use(passport.session()); // attach session.user to request
+app.use(passport.session());
 
 // Routes
 app.use(homeRoutes);
 app.use('/auth', authRoutes);
 app.use('/cart', cartRoutes);
 
-// Catch all
-app.use((req, res) => {
-  res.sendStatus(404);
+// Catch 404/all and forward to error handler
+app.use((req, res, next) => {
+  const err = newError(404, 'Not Found');
+  next(err);
 });
 
-// Error handling middleware
+// Error handler
 app.use((error, req, res, next) => {
   const statusCode = error.statusCode || 500;
   const message = error.message;
   const data = error.data;
-  console.log('Error Middleware Code: ', statusCode);
-  console.log('Error Middleware Message: ', message);
-  console.log('Error Middleware Data: ', data);
+  console.log('Error Handler: ', error);
   res.status(statusCode).json({ message, data });
 });
 

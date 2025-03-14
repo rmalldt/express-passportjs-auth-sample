@@ -62,7 +62,10 @@ export const postLogin = async (req, res, next) => {
 
     // Issue token
     const jwt = issueJwt(user);
-    req.session.visited = true; // attach session and store in DB
+
+    // Attach session (auto saved in DB by mongo-connect)
+    req.session.visited = true;
+
     res.status(200).json({
       message: 'Login Success',
       user: {
