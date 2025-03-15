@@ -5,6 +5,7 @@ import { newError } from '../utils/error-util.mjs';
 
 export const isAuth = async (req, res, next) => {
   const token = req.get('Authorization')?.split(' ')[1];
+  console.log('Received token: ', token);
   if (!token) {
     return next(newError(400, 'Bad Request'));
   }

@@ -18,13 +18,19 @@ const payloadObj = {
   sub: '1234567890',
   name: 'John Doe',
   admin: true,
-  iat: 1516239022,
 };
 
-const signedJWT = jwt.sign(payloadObj, privateKey, { algorithm: 'RS256' });
+const signedJWT = jwt.sign(payloadObj, privateKey, {
+  algorithm: 'RS256',
+  expiresIn: '3s',
+});
 console.log('SIGNED JWT: ', signedJWT);
 
-const decoded = jwt.verify(signedJWT, publicKey, {
-  algorithms: ['RS256'],
-});
-console.log('DECODED: ', decoded);
+setTimeout(checkToken, 5000);
+
+function checkToken() {
+  const decoded = jwt.verify(signedJWT, publicKey, {
+    algorithms: ['RS256'],
+  });
+  console.log('DECODED: ', decoded);
+}

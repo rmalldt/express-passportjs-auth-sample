@@ -29,21 +29,17 @@ const PUB_KEY = fs.readFileSync(
   'utf-8'
 );
 
-export const hashPassword = async pass => {
+export async function hashPassword(pass) {
   const salt = await bcrypt.genSalt(SALT_ROUNDS);
   return await bcrypt.hash(pass, salt);
-};
+}
 
-export const comparePassword = async (plain, hashed) => {
+export async function comparePassword(plain, hashed) {
   return await bcrypt.compare(plain, hashed);
-};
+}
 
-export const issueJwt = user => {
-  const payload = {
-    sub: user._id,
-    iat: Date.now(),
-  };
-
+export function issueJwt(user) {
+  const payload = { sub: user._id };
   const expiresIn = '1h';
 
   const signedToken = jwt.sign(payload, PRIV_KEY, {
@@ -55,10 +51,10 @@ export const issueJwt = user => {
     token: signedToken,
     expiresIn: expiresIn,
   };
-};
+}
 
-export const verifyJwt = token => {
+export function verifyJwt(token) {
   const decoded = jwt.verify(token, PUB_KEY, { algorithms: ['RS256'] });
   console.log('Decoded: ', decoded);
   return decoded;
-};
+}

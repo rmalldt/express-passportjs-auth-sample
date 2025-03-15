@@ -8,7 +8,7 @@
 
 # testing
 /coverage
-/adhoc.js
+/adhoc.mjs
 
 # next.js
 /.next/
@@ -20,7 +20,6 @@
 # misc
 .DS_Store
 *.pem
-adhoc.js
 
 # debug
 npm-debug.log*
