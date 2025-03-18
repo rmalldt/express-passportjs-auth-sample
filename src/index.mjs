@@ -70,7 +70,7 @@ app.use('/cart', cartRoutes);
 // Catch 404/all and forward to error handler
 app.use((req, res, next) => {
   const err = newError(404, 'Not Found');
-  next(err);
+  res.sendStatus(404);
 });
 
 // Error handler
